@@ -3,6 +3,7 @@
 {-# LANGUAGE KindSignatures        #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeOperators         #-}
+{-# LANGUAGE CPP                   #-}
 {-# OPTIONS_HADDOCK hide #-}
 -- |
 -- Module      : LLVM.AST.Type.Function
@@ -25,6 +26,10 @@ import LLVM.AST.Type.Representation
 import qualified LLVM.AST.Attribute                                 as LLVM
 import qualified LLVM.AST.Global                                    as LLVM
 import qualified LLVM.AST.Instruction                               as LLVM
+
+#if MIN_VERSION_llvm_hs(16,0,0)
+import qualified LLVM.AST.FunctionAttribute                         as LLVM
+#endif
 
 
 -- | Attributes for the function call instruction
@@ -74,7 +79,11 @@ instance Downcast FunctionAttribute LLVM.FunctionAttribute where
   downcast AlwaysInline        = LLVM.AlwaysInline
   downcast NoDuplicate         = LLVM.NoDuplicate
   downcast Convergent          = LLVM.Convergent
+#if MIN_VERSION_llvm_hs(16,0,0)
+  downcast InaccessibleMemOnly = LLVM.Memory (LLVM.Exact (LLVM.Inaccessiblemem LLVM.None))
+#else
   downcast InaccessibleMemOnly = LLVM.InaccessibleMemOnly
+#endif
 
 instance Downcast (Parameter a) LLVM.Parameter where
   downcast (Parameter t n) = LLVM.Parameter (downcast t) (downcast n) attrs
